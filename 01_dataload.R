@@ -16,8 +16,10 @@ unique(DT$Group)
 unique(DT$Score)
 
 sum(DT$Sc01==0,na.rm = T)
-colSums(!is.na(DT[,Sc_cols,with=FALSE]))-apply(DT[,Sc_cols, with=FALSE], 2, sum, na.rm=TRUE)
+head_counts=colSums(!is.na(DT[,Sc_cols,with=FALSE]))
+false_rate=((head_counts-apply(DT[,Sc_cols, with=FALSE], 2, sum, na.rm=TRUE)))/head_counts
 
-
+head_counts
 sum(DT$Sc01==1,na.rm = T)
 
+plot(false_rate)
