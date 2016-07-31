@@ -5,6 +5,7 @@ library(data.table)
 DT <- as.data.table(read.csv('http://doitprofiler.com/wp-content/uploads/2016/06/Competition2Maths.csv
                              ', stringsAsFactors = F))
 
+#
 DT <- as.data.table(read.csv("~/doktorat/zajecia/competition/erka_krakow2/RkaKrakCompetition2/Copy of Competition2Maths-1.csv"
                                                             , sep=";",stringsAsFactors = F))
 Sa_cols <- c(paste0('An0', 1:9), paste0('An', 10:48))
@@ -29,16 +30,16 @@ xDT=DT[,Sa_cols,with=FALSE]
 
 who_commas=apply(xDT,1,function(x){sum(grepl(",",x))>0})
 
-apply(DT[,Sc_cols, with=FALSE], 2, sum, na.rm=TRUE
+apply(DT[,Sc_cols, with=FALSE], 2, sum, na.rm=TRUE)
 
 #inferring correct answers
 
 
-x=c("ara","bera,")
-grepl(",",x)
+#x=c("ara","bera,")
+#grepl(",",x)
 
 
-geniuses<-DT[DT$Score>30,]
+#geniuses<-DT[DT$Score>30,]
 
 #genius<-geniuses[Sc45==1,]
 #geniuses[1,"An01" ,with=FALSE]
@@ -72,8 +73,6 @@ goodans_to_check<-c("3.75" ,"0.25", "14.29","4.5","1.73","97.723", "17.5", "3.45
 
 
 
-gsub(",",".",DT)
-
 # the answers were corrected in an XLX file
 copyDT<-copy(DT)
 for(i in 1:11){
@@ -84,17 +83,15 @@ for(i in 1:11){
   column_An=Sa_cols[column_nr]
   correct_ans=goodans_to_check[i]
   
-  new_ans<- gsub(",",".",DT[,column_An,with=FALSE])
-  
-  
- print(sum(DT[,column_Sc,with=FALSE],na.rm=T) )
+print(c("Question",column_nr))
  
  new_score<-ifelse(DT[,column_Sc,with=FALSE]==1,
            1,
-            ifelse(new_ans==correct_ans,1,0)
+            ifelse(DT[,column_An,with=FALSE]==correct_ans,1,0)
          )
- print(sum(new_score,na.rm=T))
-     DT[,c(column_An,column_Sc):=list(new_ans,new_score)]
+ print(c("new score=",sum(new_score,na.rm=T), "old score=", sum(DT[,column_Sc,with=FALSE],na.rm=T)))
+     
+DT[,column_Sc:=new_score]
     
 }
 
@@ -107,9 +104,11 @@ geniuses[1,"Sc36" ,with=FALSE]
 geniuses[1,"Score",with=FALSE]
 
 
-  apply(DT[DT$Score>30,Sc_cols, with=FALSE], 2, sum, na.rm=TRUE)
+
+
+# transforming the data
+  apply(DT[,Sc_cols, with=FALSE], 2, function(x){cumsum(x)/1:48})
 
 apply(DT[who_commas,Sc_cols, with=FALSE], 2, sum, na.rm=TRUE)
 
 
-unlist(foolist)

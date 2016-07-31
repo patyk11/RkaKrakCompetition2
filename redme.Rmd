@@ -1,0 +1,150 @@
+---
+title: "Competition 2 readme"
+author: "K Partyka, A Bondarzewski"
+date: "31 lipca 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+
+```
+
+## R Markdown
+
+
+### Data correcting and exploring
+All commas are replaced with dots and the scores for questions are reevaluated through comparison with the correct answers. As the below output shows the issue influenced the scores of less then 3-5% of the observations.
+
+```{r  data_read, echo=FALSE}
+
+DT <- as.data.table(read.csv("~/doktorat/zajecia/competition/erka_krakow2/RkaKrakCompetition2/Copy of Competition2Maths-1.csv"
+                                                            , sep=";",stringsAsFactors = F))
+Sa_cols <- c(paste0('An0', 1:9), paste0('An', 10:48))
+Sc_cols <- c(paste0('Sc0', 1:9), paste0('Sc', 10:48))
+Sd_cols <- c(paste0('Du0', 1:9), paste0('Du', 10:48))
+
+# here- change the data source and replace the commas in R not in Exel
+
+# hardcoding correct answers
+ans_to_check<-c(11,16,17,22,25,26,27,28,31,33,35)
+goodans_to_check<-c("3.75" ,"0.25", "14.29","4.5","1.73","97.723", "17.5", "3.456","57.5", "154.18633","88.226") 
+
+
+
+# the answers were corrected in an XLsX file
+for(i in 1:11){
+  #going trough the columns to check whether answer is correct.
+  
+  column_nr=ans_to_check[i]
+  column_Sc=Sc_cols[column_nr]
+  column_An=Sa_cols[column_nr]
+  correct_ans=goodans_to_check[i]
+  
+print(c("Question",column_nr))
+ 
+ new_score<-ifelse(DT[,column_Sc,with=FALSE]==1,
+           1,
+            ifelse(DT[,column_An,with=FALSE]==correct_ans,1,0)
+         )
+ print(c("new sum of correct scores=",sum(new_score,na.rm=T), "old sum of correct scores=", sum(DT[,column_Sc,with=FALSE],na.rm=T)))
+     
+DT[,column_Sc:=new_score]
+    
+}
+# correcting final scores
+final_scores=apply(DT[,Sc_cols, with=FALSE], 1, sum, na.rm=TRUE)
+
+DT[,Score:=final_scores]
+```
+
+
+#### Head counts and failure rate.
+
+```{r  head_count, echo=FALSE}
+head_counts=colSums(!is.na(DT[,Sc_cols,with=FALSE]))
+plot(head_counts)
+
+```
+
+```{r  false_rate, echo=FALSE}
+head_counts=colSums(!is.na(DT[,Sc_cols,with=FALSE]))
+false_rate=((head_counts-apply(DT[,Sc_cols, with=FALSE], 2, sum, na.rm=TRUE)))/head_counts
+
+plot(false_rate)
+```
+
+First, we investigate how many participants answered a particular question.
+Then We investigate the false rate for each question- the share of correct answers from all answers given by the participants. As  expected the number of the participants respoding to later and harder questions is droping significantly. Some of the questions also have almost 1 false answer rate. One might consider not including them into investigation as they provide little information.
+
+#### Kernel Density and quantile plot
+
+```{r denisty_plot, echo=FALSE}
+# Filled Density Plot
+d <- density(final_scores)
+plot(d, main="Kernel Density ofcorrected Scores")
+polygon(d, col="red", border="blue") 
+
+
+qqnorm(final_scores)
+qqline(final_scores, col = 2)
+
+```
+
+Distribution of final scores is asymetric, with more observation slightly above zero. The problem of bounded distribution does not appear to be strong => modeling as an unbounded series is not going to include significant bias.
+
+
+
+#### Average and sum score curve
+
+The paths of average scores are non linear. They do not  appear to fit the fixed effect model well in the biootom part of a sample.
+```{r Average_curve, echo=FALSE}
+# Filled Density Plot
+  rolling_average<-apply(DT[,Sc_cols, with=FALSE], 1, function(x){cumsum(x)/1:48})
+rolling_average<-as.data.table(t(rolling_average))
+
+rolling_average_average<-apply( rolling_average,2,sum, na.rm=T)/head_counts
+
+avg_score=DT$Score/48
+rolling_average[, "Score":=avg_score]
+
+
+treshold=0
+
+
+plotData<-matrix(0, 49,20)
+for(i in 1:10 ){
+  treshold=i*0.6/10
+  plotData[,i]=apply( rolling_average[Score<treshold],2,mean, na.rm=T)
+  plotData[,10+i]=apply( rolling_average[Score>treshold],2,mean, na.rm=T)
+}
+matplot(plotData, type = c("b"),pch=1,col = 1:20, main="Path of average score in treshold subsamples") #plot
+ legend("topleft", legend = 1:20, col=1:20, pch=1) # optional legend
+
+
+ 
+```
+
+
+On the below plot we can observe so called "glass ceilling effect". As the difficulty increases with each question, it is highly unlikely for an unskilled individual to answer later question. This results in relatively flat  sum of scores- the sum of scores is not increasing with additional questions.
+```{r sum Curve, echo=FALSE}
+
+ rolling_sum<-apply(DT[,Sc_cols, with=FALSE], 1, function(x){cumsum(x)})
+rolling_sum<-as.data.table(t(rolling_sum))
+ 
+ sum_score=DT$Score
+ rolling_sum[, "Score":=sum_score]
+ plotData<-matrix(0, 49,20)
+ 
+ for(i in 1:10 ){
+  treshold=i*30/10
+  plotData[,i]=apply( rolling_sum[Score<treshold],2,mean, na.rm=T)
+  plotData[,10+i]=apply( rolling_sum[Score>treshold],2,mean, na.rm=T)
+}
+matplot(plotData, type = c("b"),pch=1,col = 1:20, main="Sum of the results iin treshold subsamples") #plot
+ legend("topleft", legend = 1:20, col=1:20, pch=1) # optional legend
+
+ 
+
+```
