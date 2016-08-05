@@ -25,6 +25,7 @@ create_validation_set = function()
     valLQ = sprintf("An%02i",valLQ + 1)
     valLQ = which(colnames(validationSet) == valLQ):ncol(validationSet)
     validationSet[i,valLQ] = NA
+    print(i)
   }
   validationSet
 }
