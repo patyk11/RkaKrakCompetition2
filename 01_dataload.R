@@ -5,9 +5,6 @@ library(data.table)
 DT <- as.data.table(read.csv('http://doitprofiler.com/wp-content/uploads/2016/06/Competition2Maths.csv
                              ', stringsAsFactors = F))
 
-#
-DT <- as.data.table(read.csv("~/doktorat/zajecia/competition/erka_krakow2/RkaKrakCompetition2/Copy of Competition2Maths-1.csv"
-                                                            , sep=";",stringsAsFactors = F))
 Sa_cols <- c(paste0('An0', 1:9), paste0('An', 10:48))
 Sc_cols <- c(paste0('Sc0', 1:9), paste0('Sc', 10:48))
 Sd_cols <- c(paste0('Du0', 1:9), paste0('Du', 10:48))
