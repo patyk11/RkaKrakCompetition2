@@ -9,7 +9,8 @@ Sa_cols <- c(paste0('An0', 1:9), paste0('An', 10:48))
 Sc_cols <- c(paste0('Sc0', 1:9), paste0('Sc', 10:48))
 Sd_cols <- c(paste0('Du0', 1:9), paste0('Du', 10:48))
 
-
+# removing commans added
+DT <- DT[, lapply(.SD, gsub, pattern  = ',', replacement = '.'), .SDcols = Sa_cols]
 
 unique(DT$Group)
 unique(DT$Score)
@@ -96,9 +97,9 @@ DT[,column_Sc:=new_score]
 temp=geniuses[1,Sa_cols ,with=FALSE]==goodanswer_final
 which(temp!=geniuses[1,Sc_cols ,with=FALSE])
 goodanswer_final[36]
-geniuses[1,"An36", ,with=FALSE]
-geniuses[1,"Sc36" ,with=FALSE]
-geniuses[1,"Score",with=FALSE]
+# geniuses[1,"An36", ,with=FALSE]
+# geniuses[1,"Sc36" ,with=FALSE]
+# geniuses[1,"Score",with=FALSE]
 
 
 
