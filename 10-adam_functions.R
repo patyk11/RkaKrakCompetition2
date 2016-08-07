@@ -34,5 +34,5 @@ check_method_different_stop_times <- function(DT_fun) {
     DT_testing[is.na(temporary_name), temporary_name := 0]
     setnames(DT_testing, new = col, old = 'temporary_name')
   }
-  return(DT_testing)
+  return(list(DT_testing = DT_testing, questions_answered = questions_answered))
 }

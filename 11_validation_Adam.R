@@ -11,6 +11,9 @@ THRESHOLD = 1200
 
 source('01_dataload.R')
 validationSet = copy(DT)
+
+# for comparison..
+questions_answered_before_shrink <- apply(DT[, Sc_cols, with = FALSE], 1, function(x) sum(!is.na(x)))
 validationScores = validationSet[["Score"]]
 
 create_validation_set = function()
@@ -25,7 +28,7 @@ create_validation_set = function()
     valLQ = valLastQuestion[i]
     if(valLQ == ncol(valDuration)) next; # skip when someone solved all questions
     valLQ = sprintf("An%02i",valLQ + 1)
-    valLQ = which(colnames(validationSet) == valLQ):ncol(validationSet)
+    valLQ = which(colnames(validationSet) == valLQ):ncol(validationSet) # tu jest dużo kolumn
     validationSet[i,valLQ] = NA
   }
   validationSet
@@ -44,11 +47,24 @@ validationSet = create_validation_set()
 if(!dir.exists('data'))
   dir.create('data')
 
+# changing scores for answers = NA
+
+for(it in 1:48) {
+  if(it < 10)
+    Sc_col <- sprintf('Sc0%s', it) else
+      Sc_col <- sprintf('Sc%s', it)
+    
+  Sd_col <- gsub(pattern = 'Sc', replacement = 'An', Sc_col)
+  
+  validationSet[is.na(get(Sc_col)), Sd_col := NA, with = FALSE]
+}
+
 saveRDS(validationSet, 'data/validationSet.RDS')
 
 source('10-adam_functions.R')
-validationSet <- check_method_different_stop_times(validationSet)
-
+output <- check_method_different_stop_times(validationSet)
+validationSet <- output$DT_testing
+questions_answered <- output$questions_answered
 # THIS IS THE PART WHICH CALCULATES IF YOU ARE THE WINNER
 # Calculate predicted score:
 predictedScores = rowSums(validationSet %>% select(matches("Sc[0-9][0-9]")))
